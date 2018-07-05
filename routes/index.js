@@ -6,7 +6,7 @@ var test_run_controller = require('../controllers/testruncontroller');
 
 // GET home page.
 router.get('/', function(req, res) {
-  res.redirect('/catalog');
+  res.redirect('/test/test_run_details/test');
 });
 
 // GET request for creating a BookInstance. NOTE This must come before route that displays BookInstance (uses id).
