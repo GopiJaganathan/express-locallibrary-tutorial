@@ -43,12 +43,9 @@ exports.testrun_details_create_post = [
             job_url: req.body.job_url,
             run_date: req.body.run_date,
             run_purpose: req.body.run_purpose,
-            environment: req.body.environment
+            environment: req.body.environment,
+            test_case_detail: req.body.testcase_details
            });
-
-
-
-
         if (!errors.isEmpty()) {
             // There are errors. Render form again with sanitized values and error messages.
             TestRunDetails.find({},'title')
@@ -59,181 +56,52 @@ exports.testrun_details_create_post = [
             return;
         }
         else {
-            testrundetails.save().then((test_run_detail_res)=>
+            testrundetails.save().then((err, test_run_detail_res)=>
             {
-                Promise.all(req.body.testcase_details.map(function(result) {
-                  result.test_run_id = test_run_detail_res;
-                  console.log("result => "+result);
-                  return result;
-                })).then(function(result) {
-                  res.status(200).send(JSON.stringify({ run_details: TestCaseDetails.insertMany(result)}));
-                });
+              if (err) { return res.send(err); }
+              res.status(200).send(JSON.stringify({ run_details: test_run_detail_res}));
               });
-             // result now equals 'done'
           }
         }
-
-          //Data to save test run details
-
-          // .then(testrundetails => {
-          //   console.log("test run detail stored sucessfully "+ testrundetails);
-          //   req.body.testcase_details.map(function(err, result) {
-          //         if (err) {
-          //           console.log("erer er but err"+req.body.testcase_details);
-          //           return next(err);
-          //         }
-          //         console.log("result body result "+ result);
-          //         req.body.testcase_details.test_run_id = testrundetails._id;
-          //     })
-          // });
-          // };
-            //     // Successful - redirect to new record.
-            //     //res.status(200).send(JSON.stringify({ title: 'Successful stored',obje_id : testrundetails.url, test_details : testrundetails}));
-            //     console.log("test run detail stored sucessfully "+ testrundetails);
-            //     console.log("[req.body.testcase_details]test run detail stored sucessfully "+ req.body.testcase_details);
-            //     return req.body.testcase_details.map(function(err, result) {
-            //       if (err) { return next(err); }
-            //       console.log("result body result "+ result);
-            //       req.body.testcase_details.test_run_id = testrundetails._id;
-            //   }).then(() => {
-            //     if (err) { console.log("error + "+err);
-            //       return next(err);
-            //     }
-            //     console.log("test case test run id "+ result.testcase_details.test_run_id)
-            //     console.log("test case detail: "+TestCaseDetails.insertMany(req.body.testcase_details));
-            //   });
-            // });
-
-
-
-          //, test_Case_details: TestCaseDetails.insertMany(req.body.testcase_details)
-            //Data to save test case details
-            // req.body.testcase_details = req.body.testcase_details.map(function(testcase) {
-            //   testcase.test_run_id = testrundetails;
-            //   console.log("test case test run id "+ testcase.test_run_id
-            //   return testcase;
-            // })
-            //
-            // testcase_detail_resposne = TestCaseDetails.insertMany(req.body.testcase_details)
-
-
-            //Data to save test run details
-            // testrundetails.save(function (err) {
-            //     if (err) { return next(err); }
-            //        // Successful - redirect to new record.
-            //        res.status(200).send(JSON.stringify({ title: 'Successful stored', test_Case_details: TestCaseDetails.insertMany(req.body.testrun_details),obje_id : testrundetails.url, test_details : testrundetails}));
-            // });
-
-            // // Data from form is valid.
-            // TestCaseDetails.insertMany(req.body.testrun_details).then(function(err) {
-            //   // res.status(200).send(JSON.stringify({ title: 'Inserting test case details', obje_id : testcasedetails.url, test_case_details: testcase_details}));
-            //   // Data from form is valid.
-            //  })
-            // .catch(function(err) {
-            //   res.status(400).send(JSON.stringify({ title: 'unable to stored', obje_id : testcasedetails.url, error_message: err})); });
 ];
-
-// Display detail page for a specific Author.
-exports.author_detail = function(req, res) {
-  async.parallel({
-      author: function(callback) {
-          Author.findById(req.params.id)
-            .exec(callback);
-      },
-      author_books: function(callback) {
-        Book.find({ author: req.params.id }, 'title summary')
-        .exec(callback);
-      }
-  }, function(err, results) {
-      if (err) { return next(err); }
-      if (results.author==null) { // No results.
-          var err = new Error('Author not found');
-          err.status = 404;
-          return next(err);
-      }
-      // Successful, so render.
-      res.render('author_detail', { title: 'Title', author:  results.author,  author_books: results.author_books } );
-  });
-};
-
-
-// // Display BookInstance create form on GET.
-// exports.testrun_details_create_get = function(req, res, next) {
-//
-//     TestRunDetails.find({environment: req.params.environment_id},'title')
-//     .populate()
-//     .exec(function (err, test_detail_env) {
-//        if (err) { return next(err); }
-//        async.parallel({
-//             author : function(callback) {
-//               console.log(" --> "+test_detail_env);
-//               test_detail_env.forEach(function(test_detail_id, index, arr) {
-//               console.log(test_detail_id);
-//               TestRunDetails.findById(test_detail_id)
-//          });
-//          exec(callback);
-//          }
-//        }, function(err, results) {
-//              if (err) { return next(err); }
-//
-//       // Successful, so render.
-//       res.send({title: 'environet wise information', test_detail:results.test_detail_env, environment: req.params.environment_id});
-//     });
-//     });
-// };
 
 
 exports.testrun_details_create_get = function(req, res, next) {
-  asyncWaterFall([
-    function(callback){
-      TestRunDetails
-      .find({environment:req.params.environment_id})
-      .sort({ run_date : -1 })
-      .exec(function (err, testrundetails) {
-        if (err) { console.log("inside error1"+err);return next(err); }
-        callback(null,{test_run_details: testrundetails})
-        // Successful, so render.
+  console.log("inside error1 "+req.params.environment_id)
+  TestRunDetails
+  .find({environment: req.params.environment_id})
+  .sort({ run_date : -1 })
+  .exec(function (err, testrundetails) {
+    if (err) { console.log("inside error1"+err);return next(err); }
+    res.send( JSON.stringify({ case_list: testrundetails }));
     });
-  },
-  function(filteredTestRun, callback){
-    TestCaseDetails
-    .find({test_run_id:filteredTestRun.test_run_details[0]})
-    .exec(function (err, testcasedetails) {
-      if (err) { console.log("inside error2"+err);return next(err); }
-      callback(null,{test_case_details: testcasedetails, test_run_details: filteredTestRun})
-  });
-  }
-],function (err, filteredTestcase) {
-  if (err) { console.log("inside error3 %j",err);return next(err); }
-    res.send( JSON.stringify({ case_list: filteredTestcase }));
-  });
 };
 
-
-// Display detail page for a specific Author.
-exports.author_detail = function(req, res) {
-  async.parallel({
-      author: function(callback) {
-          Author.findById(req.params.id)
-            .exec(callback);
-      },
-      author_books: function(callback) {
-        Book.find({ author: req.params.id }, 'title summary')
-        .exec(callback);
-      }
-  }, function(err, results) {
-      if (err) { return next(err); }
-      if (results.author==null) { // No results.
-          var err = new Error('Author not found');
-          err.status = 404;
-          return next(err);
-      }
-      // Successful, so render.
-      res.render('author_detail', { title: 'Title', author:  results.author,  author_books: results.author_books } );
-  });
-};
-
-
+// exports.testrun_details_create_get = function(req, res, next) {
+//   asyncWaterFall([
+//     function(callback){
+//       TestRunDetails
+//       .find({testcase_details: {$elemMatch: {owner: req.params.environment_id}} })
+//       .sort({ run_date : -1 })
+//       .exec(function (err, testrundetails) {
+//         if (err) { console.log("inside error1"+err);return next(err); }
+//         callback(null,{test_run_details: testrundetails})
+//         // Successful, so render.
+//     });
+//   },
+//   function(filteredTestRun, callback){
+//     TestCaseDetails
+//     .find({test_run_id:filteredTestRun.test_run_details[0]})
+//     .exec(function (err, testcasedetails) {
+//       if (err) { console.log("inside error2"+err);return next(err); }
+//       callback(null,{test_case_details: testcasedetails, test_run_details: filteredTestRun})
+//   });
+//   }
+// ],function (err, filteredTestcase) {
+//   if (err) { console.log("inside error3 %j",err);return next(err); }
+//     res.send( JSON.stringify({ case_list: filteredTestcase }));
+//   });
+// };
 
 exports.testcase_details_create_get = function(req, res, next) {
   var filter = {};
@@ -282,14 +150,4 @@ exports.testcase_details_create_get = function(req, res, next) {
         // Successful, so render.
         res.render('author_detail', { title: 'Title', author:  results.author,  author_books: results.author_books } );
     });
-};
-
-// Display BookInstance update form on GET.
-exports.bookinstance_update_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: BookInstance update GET');
-};
-
-// Handle bookinstance update on POST.
-exports.bookinstance_update_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: BookInstance update POST');
 };
